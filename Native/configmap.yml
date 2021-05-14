@@ -1,0 +1,222 @@
+apiVersion: v1
+data:
+  flink-conf.yaml: "#==============================================================================\n#
+    Common\n#==============================================================================\n\n#
+    The config parameters defining the network port to connect to for communications.\njobmanager.rpc.port:
+    6123\ntaskmanager.rpc.port: 6122\n\n# The total process memory size for the JobManager.\njobmanager.memory.process.size:
+    4g\n\n# The total process memory size for the TaskManager.\ntaskmanager.memory.process.size:
+    4g\n\n# The number of task slots that each TaskManager offers. Each slot runs
+    one parallel pipeline.\n# Running more smaller TaskManagers with one slot each
+    is a good starting point\n# and leads to the best isolation between tasks.\ntaskmanager.numberOfTaskSlots:
+    1\n\n# The parallelism used for programs that did not specify and other parallelism.\nparallelism.default:
+    1\n\n#==============================================================================\n#
+    Memory Configuration\n#==============================================================================\n\n#
+    Total Process Memory size for the TaskExecutors.\n# taskmanager.memory.process.size:
+    1728m\n\n# Total Process Memory size for the JobManager.\n# jobmanager.memory.process.size:
+    1600m\n\n#==============================================================================\n#
+    Full JobManager Options\n#==============================================================================\n\n#
+    == Job Manager == #\n\n# The config parameter defining the network address to
+    connect to for communication with the job manager.\njobmanager.rpc.address: flink-cluster\n\n#
+    Dictionary for JobManager to store the archives of completed jobs.\njobmanager.archive.fs.dir:
+    ${archive.fs.path}n\n# == Blob Server == #\n\n#
+    The Blob Server is a component in the JobManager. It is used for distribution\n#
+    of objects that are too large to be attached to a RPC message and that benefit\n#
+    from caching (like Jar files or large serialized code objects).\n\n# The config
+    parameter defining the server port of the blob service.\nblob.server.port: 6124\n\n#==============================================================================\n#
+    Checkpointing & State Backend\n#==============================================================================\n\n#
+    The state backend to be used to store and checkpoint state.\nstate.backend: filesystem\n\n#
+    The default directory used for storing the data files and meta data of checkpoints\n#
+    in a Flink supported filesystem. \nstate.checkpoints.dir: ${checkpointpath}\n\n#
+    The default directory for savepoints.\nstate.savepoints.dir: ${savepointpath}\n\n#
+    Gets the interval in which checkpoints are periodically scheduled.\nexecution.checkpointing.interval:
+    60 s\n\n# The minimal pause between checkpointing attempts.\nexecution.checkpointing.min-pause:
+    60 s\n\n# The maximum number of checkpoint attempts that may be in progress at
+    the same time.\nexecution.checkpointing.max-concurrent-checkpoints: 1\n\n# The
+    checkpointing mode (exactly-once vs. at-least-once).\nexecution.checkpointing.mode:
+    EXACTLY_ONCE\n\n# Greatly reduce checkpointing times under backpressure.\n# Can
+    only be enabled if execution.checkpointing.mode is EXACTLY_ONCE\n# and if execution.checkpointing.max-concurrent-checkpoints
+    is 1\nexecution.checkpointing.unaligned: true\n\n# RETAIN_ON_CANCELLATION -> Manual
+    cleaning.\nexecution.checkpointing.externalized-checkpoint-retention: DELETE_ON_CANCELLATION\n\n#==============================================================================\n#
+    Fault Tolerance\n#==============================================================================\n\n#
+    https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/task_failure_recovery.html#fixed-delay-restart-strategy\nrestart-strategy:
+    none\n# The number of times that Flink retries the execution before the job is
+    declared as failed.\n# restart-strategy.fixed-delay.attempts: 3\n# Delay between
+    two consecutive restart attempts.\n# restart-strategy.fixed-delay.delay: 10 s\n\n#==============================================================================\n#
+    Advanced Fault Tolerance\n#==============================================================================\n\n#
+    Time interval for requesting heartbeat from sender side.\nheartbeat.interval:
+    20000\n\n# Timeout for requesting and receiving heartbeat for both sender and
+    receiver sides.\nheartbeat.timeout: 100000\n\n# This option specifies how the
+    job computation recovers from task failures.\n# Accepted values are:\n#   'full':
+    Restarts all tasks to recover the job.\n#   'region': Restarts all tasks that
+    could be affected by the task failure.\njobmanager.execution.failover-strategy:
+    region\n\n#==============================================================================\n#
+    Security\n#==============================================================================\n\n#
+    Todo (SSL & Kerberos)\n\n#==============================================================================\n#
+    Metrics\n#==============================================================================\n\n#
+    TODO\n\n#==============================================================================\n#
+    Kubernetes\n#==============================================================================\n\n#
+    It is used for identifying a unique Flink cluster. If not set, the client will
+    automatically generate it with a random ID.\nkubernetes.cluster-id: flink-cluster\n\n#
+    The namespace that will be used for running the jobmanager and taskmanager pods.\nkubernetes.namespace:
+    apache-flink\n\n# Image to use for Flink containers.\nkubernetes.container.image:
+    ${image(flink:1.10.0-scala_2.12)}\n\n#
+    The node selector to be set for TaskManager pods. Specified as key:value pairs
+    separated by commas.\nkubernetes.taskmanager.node-selector: flink:true\n\n# The
+    user-specified tolerations to be set to the TaskManager pod.\nkubernetes.taskmanager.tolerations:
+    key:flink,operator:Equal,value:true,effect:NoSchedule\n\n# The service type\nkubernetes.rest-service.exposed.type:
+    ClusterIP\n\n#==============================================================================\n#
+    Backup\n#==============================================================================\n\n#
+    The deployment target for the execution. This can take one of the following values:\n#
+    remote, local, yarn-per-job, yarn-session, kubernetes-session\nexecution.target:
+    kubernetes-session\n\n#==============================================================================\n#
+    ???\n#==============================================================================\nkubernetes.internal.jobmanager.entrypoint.class:
+    org.apache.flink.kubernetes.entrypoint.KubernetesSessionClusterEntrypoint\ninternal.cluster.execution-mode:
+    NORMAL\nfs.hdfs.hadoopconf: /opt/flink/etc-hadoop/\n"
+  log4j-console.properties: |
+    ################################################################################
+    #  Licensed to the Apache Software Foundation (ASF) under one
+    #  or more contributor license agreements.  See the NOTICE file
+    #  distributed with this work for additional information
+    #  regarding copyright ownership.  The ASF licenses this file
+    #  to you under the Apache License, Version 2.0 (the
+    #  "License"); you may not use this file except in compliance
+    #  with the License.  You may obtain a copy of the License at
+    #
+    #      http://www.apache.org/licenses/LICENSE-2.0
+    #
+    #  Unless required by applicable law or agreed to in writing, software
+    #  distributed under the License is distributed on an "AS IS" BASIS,
+    #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    #  See the License for the specific language governing permissions and
+    # limitations under the License.
+    ################################################################################
+
+    # Allows this configuration to be modified at runtime. The file will be checked every 30 seconds.
+    monitorInterval=30
+
+    # This affects logging for both user code and Flink
+    rootLogger.level = DEBUG
+    rootLogger.appenderRef.console.ref = ConsoleAppender
+    rootLogger.appenderRef.rolling.ref = RollingFileAppender
+
+    # Uncomment this if you want to _only_ change Flink's logging
+    #logger.flink.name = org.apache.flink
+    #logger.flink.level = DEBUG
+
+    # The following lines keep the log level of common libraries/connectors on
+    # log level INFO. The root logger does not override this. You have to manually
+    # change the log levels here.
+    logger.beam.name = org.apache.beam
+    logger.beam.level = INFO
+    logger.akka.name = akka
+    logger.akka.level = INFO
+    logger.kafka.name= org.apache.kafka
+    logger.kafka.level = WARN
+    logger.hadoop.name = org.apache.hadoop
+    logger.hadoop.level = DEBUG
+    logger.zookeeper.name = org.apache.zookeeper
+    logger.zookeeper.level = DEBUG
+    logger.parquet.name = org.apache.parquet
+    logger.parquet.level = DEBUG
+
+    # Log all infos to the console
+    appender.console.name = ConsoleAppender
+    appender.console.type = CONSOLE
+    appender.console.layout.type = PatternLayout
+    appender.console.layout.pattern = %d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n
+
+    # Log all infos in the given rolling file
+    appender.rolling.name = RollingFileAppender
+    appender.rolling.type = RollingFile
+    appender.rolling.append = true
+    appender.rolling.fileName = ${sys:log.file}
+    appender.rolling.filePattern = ${sys:log.file}.%i
+    appender.rolling.layout.type = PatternLayout
+    appender.rolling.layout.pattern = %d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n
+    appender.rolling.policies.type = Policies
+    appender.rolling.policies.size.type = SizeBasedTriggeringPolicy
+    appender.rolling.policies.size.size=100MB
+    appender.rolling.policies.startup.type = OnStartupTriggeringPolicy
+    appender.rolling.strategy.type = DefaultRolloverStrategy
+    appender.rolling.strategy.max = ${env:MAX_LOG_FILE_NUMBER:-10}
+
+    # Suppress the irrelevant (wrong) warnings from the Netty channel handler
+    logger.netty.name = org.apache.flink.shaded.akka.org.jboss.netty.channel.DefaultChannelPipeline
+    logger.netty.level = OFF
+  logback-console.xml: |
+    <!--
+      ~ Licensed to the Apache Software Foundation (ASF) under one
+      ~ or more contributor license agreements.  See the NOTICE file
+      ~ distributed with this work for additional information
+      ~ regarding copyright ownership.  The ASF licenses this file
+      ~ to you under the Apache License, Version 2.0 (the
+      ~ "License"); you may not use this file except in compliance
+      ~ with the License.  You may obtain a copy of the License at
+      ~
+      ~     http://www.apache.org/licenses/LICENSE-2.0
+      ~
+      ~ Unless required by applicable law or agreed to in writing, software
+      ~ distributed under the License is distributed on an "AS IS" BASIS,
+      ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+      ~ See the License for the specific language governing permissions and
+      ~ limitations under the License.
+      -->
+
+    <configuration>
+        <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{60} %X{sourceThread} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <appender name="rolling" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${log.file}</file>
+            <append>false</append>
+
+            <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+                <fileNamePattern>${log.file}.%i</fileNamePattern>
+                <minIndex>1</minIndex>
+                <maxIndex>10</maxIndex>
+            </rollingPolicy>
+
+            <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                <maxFileSize>100MB</maxFileSize>
+            </triggeringPolicy>
+
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{60} %X{sourceThread} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <!-- This affects logging for both user code and Flink -->
+        <root level="INFO">
+            <appender-ref ref="console"/>
+            <appender-ref ref="rolling"/>
+        </root>
+
+        <!-- Uncomment this if you want to only change Flink's logging -->
+        <!--<logger name="org.apache.flink" level="INFO"/>-->
+
+        <!-- The following lines keep the log level of common libraries/connectors on
+             log level INFO. The root logger does not override this. You have to manually
+             change the log levels here. -->
+        <logger name="akka" level="INFO"/>
+        <logger name="org.apache.kafka" level="INFO"/>
+        <logger name="org.apache.hadoop" level="INFO"/>
+        <logger name="org.apache.zookeeper" level="INFO"/>
+
+        <!-- Suppress the irrelevant (wrong) warnings from the Netty channel handler -->
+        <logger name="org.apache.flink.shaded.akka.org.jboss.netty.channel.DefaultChannelPipeline" level="ERROR"/>
+    </configuration>
+kind: ConfigMap
+metadata:
+  labels:
+    app: flink-cluster
+    type: flink-native-kubernetes
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:data:
+        f:flink-conf.yaml: {}
+        f:log4j-console.properties: {}
+  name: flink-config-flink-cluster

@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: flink-cluster
+    component: jobmanager
+    flink: "true"
+    type: flink-native-kubernetes
+  name: flink-cluster
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: flink-cluster
+      component: jobmanager
+      type: flink-native-kubernetes
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: flink-cluster
+        component: jobmanager
+        flink: "true"
+        type: flink-native-kubernetes
+    spec:
+      containers:
+      - args:
+        - native-k8s
+        - $JAVA_HOME/bin/java -classpath $FLINK_CLASSPATH -Xmx1073741824 -Xms1073741824
+          -XX:MaxMetaspaceSize=268435456 -Dlog.file=/opt/flink/log/jobmanager.log
+          -Dlogback.configurationFile=file:/opt/flink/conf/logback-console.xml -Dlog4j.configuration=file:/opt/flink/conf/log4j-console.properties
+          -Dlog4j.configurationFile=file:/opt/flink/conf/log4j-console.properties
+          org.apache.flink.kubernetes.entrypoint.KubernetesSessionClusterEntrypoint
+          -D jobmanager.memory.off-heap.size=134217728b -D jobmanager.memory.jvm-overhead.min=201326592b
+          -D jobmanager.memory.jvm-metaspace.size=268435456b -D jobmanager.memory.heap.size=1073741824b
+          -D jobmanager.memory.jvm-overhead.max=201326592b
+        command:
+        - /docker-entrypoint.sh
+        env:
+        - name: _POD_IP_ADDRESS
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: {Credential_path}
+        - name: FLINK_LOG_PREFIX
+          value: jobmanager
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: {SERVER_ADRESSES}
+        - name: ENV
+          value: stg
+        image: {}
+        imagePullPolicy: IfNotPresent
+        name: flink-job-manager
+        ports:
+        - containerPort: 8081
+          name: rest
+          protocol: TCP
+        - containerPort: 6123
+          name: jobmanager-rpc
+          protocol: TCP
+        - containerPort: 6124
+          name: blobserver
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1600Mi
+          requests:
+            cpu: "1"
+            memory: 1600Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /opt/flink/conf
+          name: flink-config-volume
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        flink: "true"
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: default
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: flink
+        operator: Equal
+        value: "true"
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: logback-console.xml
+            path: logback-console.xml
+          - key: log4j-console.properties
+            path: log4j-console.properties
+          - key: flink-conf.yaml
+            path: flink-conf.yaml
+          name: flink-config-flink-cluster
+        name: flink-config-volume

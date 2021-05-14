@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskmanager
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: flink
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: flink
+        component: task
+    spec:
+      containers:
+      - args:
+        - taskmanager
+        env:
+        - name: JOB_MANAGER_RPC_ADDRESS
+          value: jobmanager
+        image: flink:1.10.0-scala_2.12
+        imagePullPolicy: IfNotPresent
+        name: task
+        ports:
+        - containerPort: 6121
+          name: data
+          protocol: TCP
+        - containerPort: 6122
+          name: rpc
+          protocol: TCP
+        - containerPort: 6125
+          name: query
+          protocol: TCP
+        resources: {}
+        securityContext:
+          runAsUser: 9999
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        workingDir: /opt/flink
+      dnsPolicy: ClusterFirst
+      nodeSelector: #Eğer node'larınıza label tanımı yapmadıysanız burayı yamllarınızdan çıkarabilirsiniz.
+        flink: "true"
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      tolerations: #node'da taints tanımlaması yaptığımız için kullandık.
+      - effect: NoSchedule
+        key: flink
+        operator: Equal
+        value: "true"

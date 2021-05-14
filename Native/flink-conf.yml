@@ -1,0 +1,162 @@
+#==============================================================================
+# Common
+#==============================================================================
+
+# The config parameters defining the network port to connect to for communications.
+jobmanager.rpc.port: 6123
+taskmanager.rpc.port: 6122
+
+# The total process memory size for the JobManager.
+jobmanager.memory.process.size: 4g
+
+# The total process memory size for the TaskManager.
+taskmanager.memory.process.size: 4g
+
+# The number of task slots that each TaskManager offers. Each slot runs one parallel pipeline.
+# Running more smaller TaskManagers with one slot each is a good starting point
+# and leads to the best isolation between tasks.
+taskmanager.numberOfTaskSlots: 1
+
+# The parallelism used for programs that did not specify and other parallelism.
+parallelism.default: 1
+
+#==============================================================================
+# Memory Configuration
+#==============================================================================
+
+# Total Process Memory size for the TaskExecutors.
+# taskmanager.memory.process.size: 1728m
+
+# Total Process Memory size for the JobManager.
+# jobmanager.memory.process.size: 1600m
+
+#==============================================================================
+# Full JobManager Options
+#==============================================================================
+
+# == Job Manager == #
+
+# The config parameter defining the network address to connect to for communication with the job manager.
+jobmanager.rpc.address: flink-cluster
+
+# Dictionary for JobManager to store the archives of completed jobs.
+jobmanager.archive.fs.dir: ${archive path} 
+
+# == Blob Server == #
+
+# The Blob Server is a component in the JobManager. It is used for distribution
+# of objects that are too large to be attached to a RPC message and that benefit
+# from caching (like Jar files or large serialized code objects).
+
+# The config parameter defining the server port of the blob service.
+blob.server.port: 6124
+
+#==============================================================================
+# Checkpointing & State Backend
+#==============================================================================
+
+# The state backend to be used to store and checkpoint state.
+state.backend: filesystem
+
+# The default directory used for storing the data files and meta data of checkpoints
+# in a Flink supported filesystem. 
+state.checkpoints.dir: ${checkpoints_path}
+
+# The default directory for savepoints.
+state.savepoints.dir: ${savepoints_path}
+
+# Gets the interval in which checkpoints are periodically scheduled.
+execution.checkpointing.interval: 60 s
+
+# The minimal pause between checkpointing attempts.
+execution.checkpointing.min-pause: 60 s
+
+# The maximum number of checkpoint attempts that may be in progress at the same time.
+execution.checkpointing.max-concurrent-checkpoints: 1
+
+# The checkpointing mode (exactly-once vs. at-least-once).
+execution.checkpointing.mode: EXACTLY_ONCE
+
+# Greatly reduce checkpointing times under backpressure.
+# Can only be enabled if execution.checkpointing.mode is EXACTLY_ONCE
+# and if execution.checkpointing.max-concurrent-checkpoints is 1
+execution.checkpointing.unaligned: true
+
+# RETAIN_ON_CANCELLATION -> Manual cleaning.
+execution.checkpointing.externalized-checkpoint-retention: DELETE_ON_CANCELLATION
+
+#==============================================================================
+# Fault Tolerance
+#==============================================================================
+
+# https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/task_failure_recovery.html#fixed-delay-restart-strategy
+restart-strategy: none
+# The number of times that Flink retries the execution before the job is declared as failed.
+# restart-strategy.fixed-delay.attempts: 3
+# Delay between two consecutive restart attempts.
+# restart-strategy.fixed-delay.delay: 10 s
+
+#==============================================================================
+# Advanced Fault Tolerance
+#==============================================================================
+
+# Time interval for requesting heartbeat from sender side.
+heartbeat.interval: 20000
+
+# Timeout for requesting and receiving heartbeat for both sender and receiver sides.
+heartbeat.timeout: 100000
+
+# This option specifies how the job computation recovers from task failures.
+# Accepted values are:
+#   'full': Restarts all tasks to recover the job.
+#   'region': Restarts all tasks that could be affected by the task failure.
+jobmanager.execution.failover-strategy: region
+
+#==============================================================================
+# Security
+#==============================================================================
+
+# Todo (SSL & Kerberos)
+
+#==============================================================================
+# Metrics
+#==============================================================================
+
+# TODO
+
+#==============================================================================
+# Kubernetes
+#==============================================================================
+
+# It is used for identifying a unique Flink cluster. If not set, the client will automatically generate it with a random ID.
+kubernetes.cluster-id: flink-cluster
+
+# The namespace that will be used for running the jobmanager and taskmanager pods.
+#kubernetes.namespace: ${namespace}
+
+# Image to use for Flink containers.
+kubernetes.container.image: ${image}
+
+# The node selector to be set for TaskManager pods. Specified as key:value pairs separated by commas.
+kubernetes.taskmanager.node-selector: flink:true
+
+# The user-specified tolerations to be set to the TaskManager pod.
+kubernetes.taskmanager.tolerations: key:flink,operator:Equal,value:true,effect:NoSchedule
+
+# The service type
+kubernetes.rest-service.exposed.type: ClusterIP
+
+#==============================================================================
+# Backup
+#==============================================================================
+
+# The deployment target for the execution. This can take one of the following values:
+# remote, local, yarn-per-job, yarn-session, kubernetes-session
+execution.target: kubernetes-session
+
+#==============================================================================
+# ???
+#==============================================================================
+kubernetes.internal.jobmanager.entrypoint.class: org.apache.flink.kubernetes.entrypoint.KubernetesSessionClusterEntrypoint
+internal.cluster.execution-mode: NORMAL
+fs.hdfs.hadoopconf: /opt/flink/etc-hadoop/

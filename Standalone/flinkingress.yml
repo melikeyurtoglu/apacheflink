@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: apache-flink-ingress
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  tls:
+  - hosts:
+      - apache-flink.com
+    secretName: secret
+  rules:
+  - host: apache-flink.com
+    http:
+      paths:
+      - backend:
+          serviceName: jobmanager
+          servicePort: 8081
